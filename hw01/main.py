@@ -17,16 +17,15 @@ PATH_VALID_DATA = './valid_data.csv'
 def _create_tidy_training_set():
     # read raw data and label it
     # 1...24 mean hour of that day
-    colnames = ['Date', 'Site', 'Item'] + map(str, range(24))
-    df = pd.read_csv(PATH_GIVEN_TRAIN, names=colnames, skiprows=1)
-
-    # remove column 'Site'
-    df = df.loc[:, ['Date', 'Item'] + map(str, range(24))]
+    colnames = ['Date', 'Site', 'Item'] + [str(i) for i in range(24)]
+    # skip all Chinese characters to avoid encoding probole
+    df = pd.read_csv('./given/train.csv', names=colnames, skiprows=1, usecols=[0] + list(range(2,27)))
 
     # snapshot:
     # colums: Date, Item, 1...24(hour)
 
     # melt 'Hour' to column
+    # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.melt.html
     df = pd.melt(df,
                  id_vars=['Date', 'Item'],
                  value_vars=map(str, range(24)),
@@ -50,6 +49,7 @@ def _create_tidy_training_set():
     df['Value'] = df['Value'].astype(float)
 
     # pivot 'Item' to columns
+    # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.pivot_table.html
     df = df.pivot_table(values='Value', index='Datetime', columns='Item', aggfunc='sum')
 
     # snapshot:
